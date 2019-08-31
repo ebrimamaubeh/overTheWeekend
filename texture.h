@@ -42,7 +42,8 @@ public:
     noice_texture() {}
     noice_texture(float sc) : scale(sc) {}
     virtual vec3 value(float u, float v, const vec3 &p) const {
-        return (vec3(1, 1, 1) * noice.noice(scale * p));
+        //return (vec3(1, 1, 1) * noice.noice(scale * p));
+        return (vec3(1, 1, 1) * 0.5 * (1 + sin(scale * p.z() + 10* noice.turb(p))));
     }
 
     perlin noice;
