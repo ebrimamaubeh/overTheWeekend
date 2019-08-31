@@ -26,27 +26,23 @@ public:
         float u = p.x() - floor(p.x());
         float v = p.y() - floor(p.y());
         float w = p.z() - floor(p.z());
-        int i = floor(p.x());
-        int j = floor(p.y());
-        int k = floor(p.z());
-        vec3 c[2][2][2];
-        for (int di=0; di < 2; di++)
-            for (int dj=0; dj < 2; dj++)
-                for (int dk=0; dk < 2; dk++)
-                    c[di][dj][dk] = ranvec[perm_x[(i+di) & 255] ^ perm_y[(j+dj) & 255] ^ perm_z[(k+dk) & 255]];
-        return perlin_interp(c, u, v, w);
+        int i = int(floor(4 * p.x())) & 255;
+        int j = int(floor(4 * p.y())) & 255;
+        int k = int(floor(4 * p.z())) & 255;
+        
+        return ranfloat[perm_x[i] ^ perm_y[j] ^ perm_z[k]];
     }
 
-    static vec3 *ranvec;
+    static float *ranfloat;
     static int *perm_x;
     static int *perm_y;
     static int *perm_z;
 };
 
-static vec3* perlin_generate(){
-    vec3 *p = new vec3[256];
+static float* perlin_generate(){
+    float *p = new float[256];
     for(int i = 0; i < 256; i++){
-        p[i] = unit_vector(vec3(float(-1 + 2*drand48()), float(-1 + 2*drand48()), float(-1 + 2*drand48())));
+        p[i] = float(drand48());
     }
     return p;
 }
@@ -69,7 +65,7 @@ static int* perlin_generate_perm(){
     return p;
 }
 
-vec3 *perlin::ranvec = perlin_generate();
+float *perlin::ranfloat = perlin_generate();
 int *perlin::perm_x = perlin_generate_perm();
 int *perlin::perm_y = perlin_generate_perm();
 int *perlin::perm_z = perlin_generate_perm();
