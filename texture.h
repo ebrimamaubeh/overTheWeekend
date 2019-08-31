@@ -42,11 +42,11 @@ public:
     noice_texture() {}
     noice_texture(float sc) : scale(sc) {}
     virtual vec3 value(float u, float v, const vec3 &p) const {
-        return (vec3(1, 1, 1) * noice.noice(p));
+        return (vec3(1, 1, 1) * noice.noice(scale * p));
     }
 
     perlin noice;
-    float scale;
+    float scale = 1; // default.
 };
 
 #endif //OVERTHEWEEKEND2_TEXTURE_H
