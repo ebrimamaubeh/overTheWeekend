@@ -10,6 +10,8 @@ struct hit_record{
     float t; // for time factor, for motion blur
     vec3 p; // hit point
     vec3 normal;
+    float u;
+    float v;
     material *mat_ptr;
 };
 

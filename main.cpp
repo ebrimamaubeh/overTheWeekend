@@ -8,26 +8,29 @@
 #include "sphere.h"
 #include "camera.h"
 #include "material.h"
+#include "rectangle.h"
+
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 vec3 color(const ray &r, hitable *world, int dept){
     hit_record rec;
     float MAX_FLOAT = std::numeric_limits<float>::max();
-    float tmin = 0.0001f; // ignore hits near zero;
+    float tmin = 0.001f; // ignore hits near zero;
 
     if(world->hit(r, tmin, MAX_FLOAT, rec)){
         vec3 attnuation;
         ray scattered;
+        vec3 emitted = rec.mat_ptr->emitted(rec.u, rec.v, rec.p);
         if(dept < 50 && rec.mat_ptr->scatter(r, rec, attnuation, scattered)){
-            return (attnuation * color(scattered, world, dept + 1));
+            return (emitted + attnuation * color(scattered, world, dept + 1));
         }
         else{
-            return (vec3(0.f, 0.f, 0.f));
+            return emitted;
         }
     }
     else{
-        vec3 unit_direction = unit_vector(r.direction());
-        float t = 0.5f * (unit_direction.y() + 1.0f);
-        return (1.0-t)*vec3(1.0f, 1.0f, 1.0f) + t*vec3(0.5f, 0.7f, 1.0f);
+        return (vec3(0, 0, 0));
     }
 }
 
@@ -76,6 +79,28 @@ hitable* two_perlin_shperes(){
     return new hitable_list(list, 2);
 }
 
+hitable* earth_scene(){
+    // TODO: Not working.
+    int nx, ny, nn;
+    unsigned char *text_data = stbi_load("/home/ebrima/programming/CProgramming/overTheWeekend2/images/test.png", &nx, &ny, &nn, 0);
+    material *mat = new lambertian(new image_texture(text_data, nx, ny));
+    if(text_data == NULL){
+        std::cout << stbi_failure_reason() <<  std::endl;
+        exit(0);
+    }
+    return new sphere(vec3(0, 0, 0), 2, mat);
+}
+
+hitable* simple_light(){
+    texture *pertext = new noice_texture(4);
+    hitable **list = new hitable*[3];
+    list[0] =  new sphere(vec3(0,-1000, 0), 1000, new lambertian( pertext ));
+    list[1] =  new sphere(vec3(0, 2, 0), 2, new lambertian( pertext ));
+   // list[2] =  new sphere(vec3(0, 7, 0), 2, new diffuse_light( new constant_texture(vec3(4,4,4))));
+    list[2] =  new xy_rect(3, 5, 1, 3, -2, new diffuse_light(new constant_texture(vec3(4, 4, 4))));
+    return new hitable_list(list,3);
+}
+
 int main(){
     std::ofstream file;
     file.open("../output.ppm");
@@ -92,16 +117,16 @@ int main(){
     list[3] = new sphere(vec3(-1,0,-1), 0.5, new dielectric(1.5));
     list[4] = new sphere(vec3(-1,0,-1), -0.45f, new dielectric(1.5));
     //hitable *world = new hitable_list(list,5);
-    hitable *world = two_perlin_shperes();
+    hitable *world = simple_light();
     //world = random_scene();
 
-    vec3 lookfrom (13.f, 2.f, 3.f);
+    vec3 lookfrom (20.f, 4.f, 3.f);
     vec3 lookat = vec3(0.f, 0.f, 0.f);
     vec3 vup = vec3(0.f, 1.f, 0.f);
     float apeture = 0.f;
     float dist_to_focus = 10.0f;
 
-    camera cam(lookfrom, lookat, vup, 20, float(nx)/float(ny), apeture, dist_to_focus, 0.f, 1.f);
+    camera cam(lookfrom, lookat, vup, 30, float(nx)/float(ny), apeture, dist_to_focus, 0.f, 1.f);
 
     for(int j = ny - 1; j >= 0; j--){
         for(int i = 0; i < nx; i++){
